@@ -57,7 +57,7 @@ public class OAuthClient {
      * @throws IOException
      */
     public static TokenResponse generateToken(String url, String apiKey, String apiSecret,
-                                              String username, String password, String grantType)
+                                              String username, String password, String grantType, String scope)
             throws IOException {
 
         if(log.isDebugEnabled()) {
@@ -73,6 +73,10 @@ public class OAuthClient {
 
             String urlEncodedParams = "?grant_type=" + URLEncoder.encode("password", UTF_8) + "&username="
                     + URLEncoder.encode(username, UTF_8) + "&password=" + URLEncoder.encode(password, UTF_8);
+            
+            if (scope != null && !scope.isEmpty()) {
+                urlEncodedParams += "&scope=" + URLEncoder.encode(scope, UTF_8);
+            }
 
             // Set HTTP method
             connection.setRequestMethod(HTTP_POST);
@@ -92,7 +96,10 @@ public class OAuthClient {
             connection = (HttpURLConnection) url_.openConnection();
             connection.setDoOutput(true);
 
-            String urlEncodedParams = "?grant_type=" + URLEncoder.encode("client_credentials", UTF_8); 
+            String urlEncodedParams = "?grant_type=" + URLEncoder.encode("client_credentials", UTF_8);
+            if (scope != null && !scope.isEmpty()) {
+                urlEncodedParams += "&scope=" + URLEncoder.encode(scope, UTF_8);
+            }
 
             // Set HTTP method
             connection.setRequestMethod(HTTP_POST);

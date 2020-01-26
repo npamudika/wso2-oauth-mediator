@@ -7,6 +7,7 @@
     "username": "admin",
     "password": "admin",
     "grantType": "client_credentials",
+    "scope": "default",
     "tokenRefreshInterval": 20
   }
 ]

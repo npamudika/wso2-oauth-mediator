@@ -38,6 +38,7 @@ password grant type and client-credentials grant type and it can be extended to 
        "username": "admin",
        "password": "admin",
        "grantType": "client_credentials",
+       "scope": "default",
        "tokenRefreshInterval": 20
      }
    ]

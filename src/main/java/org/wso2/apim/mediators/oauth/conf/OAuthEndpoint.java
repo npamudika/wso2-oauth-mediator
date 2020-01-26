@@ -23,6 +23,7 @@ public class OAuthEndpoint {
     private String username;
     private String password;
     private String grantType;
+    private String scope;
     private int tokenRefreshInterval;
 
     public String getId() {
@@ -87,5 +88,13 @@ public class OAuthEndpoint {
 
     public void setTokenRefreshInterval(int tokenRefreshInterval) {
         this.tokenRefreshInterval = tokenRefreshInterval;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public void setScope(String scope) {
+        this.scope = scope;
     }
 }
