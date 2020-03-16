@@ -21,6 +21,7 @@ import org.apache.commons.logging.LogFactory;
 import org.wso2.apim.mediators.oauth.client.domain.TokenResponse;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -39,6 +40,7 @@ public class OAuthClient {
     private static final String HTTP_POST = "POST";
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String CONTENT_TYPE_HEADER = "Content-Type";
+    private static final String CONTENT_LENGTH = "Content-Length";
     private static final String APPLICATION_X_WWW_FORM_URLENCODED = "application/x-www-form-urlencoded";
 
     private static final Gson gson = new GsonBuilder().create();
@@ -55,7 +57,7 @@ public class OAuthClient {
      * @throws IOException
      */
     public static TokenResponse generateToken(String url, String apiKey, String apiSecret,
-                                              String username, String password, String grantType)
+                                              String username, String password, String grantType, String scope)
             throws IOException {
 
         if(log.isDebugEnabled()) {
@@ -65,12 +67,16 @@ public class OAuthClient {
         HttpURLConnection connection = null;
         // Set query parameters
         if (grantType.equals("password")) {
-            String query = String.format("grant_type=password&username=%s&password=%s",
-                    URLEncoder.encode(username, UTF_8), URLEncoder.encode(password, UTF_8));
-            url += "?" + query;
             URL url_ = new URL(url);
             connection = (HttpURLConnection) url_.openConnection();
             connection.setDoOutput(true);
+
+            String urlEncodedParams = "?grant_type=" + URLEncoder.encode("password", UTF_8) + "&username="
+                    + URLEncoder.encode(username, UTF_8) + "&password=" + URLEncoder.encode(password, UTF_8);
+            
+            if (scope != null && !scope.isEmpty()) {
+                urlEncodedParams += "&scope=" + URLEncoder.encode(scope, UTF_8);
+            }
 
             // Set HTTP method
             connection.setRequestMethod(HTTP_POST);
@@ -79,11 +85,21 @@ public class OAuthClient {
             String credentials = Base64.getEncoder().encodeToString((apiKey + ":" + apiSecret).getBytes());
             connection.setRequestProperty(AUTHORIZATION_HEADER, "Basic " + credentials);
             connection.setRequestProperty(CONTENT_TYPE_HEADER, APPLICATION_X_WWW_FORM_URLENCODED);
+            connection.setRequestProperty(CONTENT_LENGTH, Integer.toString(urlEncodedParams.getBytes().length));
+
+            DataOutputStream writer = new DataOutputStream(connection.getOutputStream());
+            writer.writeBytes(urlEncodedParams);
+            writer.flush();
+            writer.close();
         } else if (grantType.equals("client_credentials")) {
-            url += "?grant_type=client_credentials";
             URL url_ = new URL(url);
             connection = (HttpURLConnection) url_.openConnection();
             connection.setDoOutput(true);
+
+            String urlEncodedParams = "?grant_type=" + URLEncoder.encode("client_credentials", UTF_8);
+            if (scope != null && !scope.isEmpty()) {
+                urlEncodedParams += "&scope=" + URLEncoder.encode(scope, UTF_8);
+            }
 
             // Set HTTP method
             connection.setRequestMethod(HTTP_POST);
@@ -92,6 +108,12 @@ public class OAuthClient {
             String credentials = Base64.getEncoder().encodeToString((apiKey + ":" + apiSecret).getBytes());
             connection.setRequestProperty(AUTHORIZATION_HEADER, "Basic " + credentials);
             connection.setRequestProperty(CONTENT_TYPE_HEADER, APPLICATION_X_WWW_FORM_URLENCODED);
+            connection.setRequestProperty(CONTENT_LENGTH, Integer.toString(urlEncodedParams.getBytes().length));
+
+            DataOutputStream writer = new DataOutputStream(connection.getOutputStream());
+            writer.writeBytes(urlEncodedParams);
+            writer.flush();
+            writer.close();
         }
 
         // Make HTTP request
